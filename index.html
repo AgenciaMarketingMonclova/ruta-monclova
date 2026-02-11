@@ -1281,7 +1281,7 @@
             }
 
             container.innerHTML = filtered.map(r => `
-                <div class="route-card" onclick="viewRouteMap(${r.id})">
+                <div class="route-card" data-route-id="${r.id}" style="cursor: pointer;">
                     <div class="route-header">
                         <div class="route-name">✨ ${r.name}</div>
                         <div class="route-badge">${r.type}</div>
@@ -1291,16 +1291,48 @@
                         <div class="info-item">⏰ <span class="info-value">${r.schedule}</span></div>
                         <div class="info-item">💎 <span class="price">${r.cost}</span></div>
                     </div>
-                    <div class="route-actions" onclick="event.stopPropagation()">
-                        <button class="btn-map">🗺️ Ver Mapa</button>
+                    <div class="route-actions">
+                        <button class="btn-map" data-route-id="${r.id}">🗺️ Ver Mapa</button>
                         ${isDeveloper ? `
-                            <button class="btn-edit" onclick="editRoute(${r.id})">✏️ Editar</button>
-                            <button class="btn-delete" onclick="deleteRoute(${r.id})">🗑️ Borrar</button>
+                            <button class="btn-edit" data-route-id="${r.id}">✏️ Editar</button>
+                            <button class="btn-delete" data-route-id="${r.id}">🗑️ Borrar</button>
                         ` : ''}
                     </div>
                 </div>
             `).join('');
         }
+
+        // ==================== EVENT DELEGATION PARA RUTAS ====================
+        document.addEventListener('click', (e) => {
+            // Click en tarjeta de ruta
+            const routeCard = e.target.closest('.route-card');
+            if (routeCard && !e.target.closest('.route-actions')) {
+                const routeId = parseInt(routeCard.dataset.routeId);
+                if (routeId) viewRouteMap(routeId);
+                return;
+            }
+
+            // Click en botón Ver Mapa
+            if (e.target.closest('.btn-map')) {
+                const routeId = parseInt(e.target.closest('.btn-map').dataset.routeId);
+                if (routeId) viewRouteMap(routeId);
+                return;
+            }
+
+            // Click en botón Editar
+            if (e.target.closest('.btn-edit')) {
+                const routeId = parseInt(e.target.closest('.btn-edit').dataset.routeId);
+                if (routeId) editRoute(routeId);
+                return;
+            }
+
+            // Click en botón Borrar
+            if (e.target.closest('.btn-delete')) {
+                const routeId = parseInt(e.target.closest('.btn-delete').dataset.routeId);
+                if (routeId) deleteRoute(routeId);
+                return;
+            }
+        });
 
         // ==================== BÚSQUEDA Y FILTROS ====================
         document.getElementById('route-search').addEventListener('input', (e) => {
