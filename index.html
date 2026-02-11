@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Midnight Shuttle - Monclova</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* Color Palette - Midnight Theme */
+            --bg-deep: #0a0c10;
+            --bg-card: #151921;
+            --bg-accent: #1e2530;
+
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #0ea5e9;
+            --accent: #f59e0b;
+
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+
+            --border: rgba(255, 255, 255, 0.08);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.5;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        .brand {
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        /* --- Layout --- */
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, var(--bg-deep) 0%, #11141b 100%);
+        }
+
+        header {
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(10, 12, 16, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(90deg, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-accent);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .avatar:hover {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        main {
+            flex: 1;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        /* --- Components --- */
+        .search-container {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-accent);
+            border: 1px solid var(--border);
+            padding: 14px 16px 14px 48px;
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            font-size: 15px;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+            pointer-events: none;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 24px;
+            scrollbar-width: none;
+        }
+
+        .filter-chips::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chip {
+            padding: 8px 16px;
+            background: var(--bg-accent);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-muted);
+        }
+
+        .chip.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* --- Route Cards --- */
+        .route-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .route-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .route-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-light);
+            background: #1c212b;
+        }
+
+        .route-card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .route-card:hover::after {
+            opacity: 1;
+        }
+
+        .route-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .route-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .route-type {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--secondary);
+        }
+
+        .route-company {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .route-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .detail-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .detail-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .price-tag {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* --- Navigation Bar --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 460px;
+            height: 64px;
+            background: rgba(21, 25, 33, 0.9);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: var(--transition);
+            width: 60px;
+        }
+
+        .nav-item.active {
+            color: var(--primary-light);
+        }
+
+        .nav-item i {
+            font-size: 20px;
+        }
+
+        .nav-item span {
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        /* --- Admin Panel --- */
+        .admin-view {
+            display: none;
+        }
+
+        .admin-view.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--bg-accent);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 12px;
+        }
+
+        .btn-submit:hover {
+            background: var(--primary-light);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade {
+            animation: fadeIn 0.4s ease forwards;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="brand">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    style="fill:url(#grad1)">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:var(--primary-light);stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:var(--secondary);stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" />
+                </svg>
+                MIDNIGHT SHUTTLE
+            </div>
+            <div class="avatar" id="admin-toggle">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+        </header>
+
+        <main id="app-content">
+            <!-- User View -->
+            <div id="user-view" class="view active">
+                <div class="search-container">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="¿A dónde vas?" id="route-search">
+                </div>
+
+                <div class="section-title">Categorías</div>
+                <div class="filter-chips">
+                    <div class="chip active">Todas</div>
+                    <div class="chip">Urbanas</div>
+                    <div class="chip">Empresariales</div>
+                    <div class="chip">Escolares</div>
+                </div>
+
+                <div class="section-title">Rutas Populares</div>
+                <div class="route-list" id="route-container">
+                    <!-- Routes will be injected here -->
+                    <div class="route-card animate-fade">
+                        <div class="route-header">
+                            <span class="route-name">Castaños-Monclova</span>
+                            <span class="route-type">Urbana</span>
+                        </div>
+                        <div class="route-company">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            </svg>
+                            Transportes Frontera
+                        </div>
+                        <div class="route-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Horario</span>
+                                <span class="detail-value">05:00 - 22:30</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Costo</span>
+                                <span class="detail-value price-tag">$18.00 MXN</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin View -->
+            <div id="admin-view" class="view" style="display: none;">
+                <h2 style="margin-bottom: 24px;">Capturar Nueva Ruta</h2>
+                <form id="route-form">
+                    <div class="form-group">
+                        <label class="form-label">Nombre de la Ruta</label>
+                        <input type="text" class="form-input" id="form-name" placeholder="Ej: Directo Tecnológico"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Empresa</label>
+                        <input type="text" class="form-input" id="form-company" placeholder="Ej: SESA" required>
+                    </div>
+                    <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label class="form-label">Costo</label>
+                            <input type="text" class="form-input" id="form-cost" placeholder="$0.00">
+                        </div>
+                        <div>
+                            <label class="form-label">Tipo</label>
+                            <select class="form-input" id="form-type">
+                                <option>Urbana</option>
+                                <option>Empresarial</option>
+                                <option>Escolar</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Horario</label>
+                        <input type="text" class="form-input" id="form-schedule" placeholder="06:00 - 21:00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Requisitos</label>
+                        <textarea class="form-input" id="form-reqs" rows="3"
+                            placeholder="Gafete, cubrebocas, etc."></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">Guardar Ruta</button>
+                    <button type="button" class="btn-submit" style="background: var(--bg-accent); margin-top: 8px;"
+                        id="cancel-admin">Cancelar</button>
+                </form>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" id="nav-home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                </svg>
+                <span>Inicio</span>
+            </div>
+            <div class="nav-item">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 8v4l3 3"></path>
+                </svg>
+                <span>Horarios</span>
+            </div>
+            <div class="nav-item" id="nav-map">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>Cerca de mí</span>
+            </div>
+            <div class="nav-item">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path>
+                    <path d="M8 12h8"></path>
+                    <path d="M12 8v8"></path>
+                </svg>
+                <span>Info</span>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        // --- Data Management ---
+        const initialRoutes = [
+            {
+                id: 1,
+                name: "Directo Tecnológico",
+                company: "Servicio Urbano Monclova",
+                type: "Urbana",
+                schedule: "06:00 - 21:30",
+                cost: "$15.00 MXN",
+                reqs: "Ninguno"
+            },
+            {
+                id: 2,
+                name: "Ruta 5 - Ejido",
+                company: "Transportes Urbanos",
+                type: "Urbana",
+                schedule: "05:30 - 22:00",
+                cost: "$13.00 MXN",
+                reqs: "Pago con cambio exacto preferido"
+            },
+            {
+                id: 3,
+                name: "AHMSA Planta 1 - Sur",
+                company: "AHMSA Personal",
+                type: "Empresarial",
+                schedule: "Cambio de turno (6, 14, 22 hrs)",
+                cost: "Gratuito (Personal)",
+                reqs: "Gafete de empleado vigente, EPP completo"
+            }
+        ];
+
+        let routes = JSON.parse(localStorage.getItem('m_routes')) || initialRoutes;
+
+        // --- View Logic ---
+        const userView = document.getElementById('user-view');
+        const adminView = document.getElementById('admin-view');
+        const routeContainer = document.getElementById('route-container');
+        const routeForm = document.getElementById('route-form');
+
+        function renderRoutes(filter = '') {
+            const query = filter.toLowerCase();
+            const filtered = routes.filter(r =>
+                r.name.toLowerCase().includes(query) ||
+                r.company.toLowerCase().includes(query)
+            );
+
+            routeContainer.innerHTML = filtered.map((r, index) => `
+                <div class="route-card animate-fade" style="animation-delay: ${index * 0.05}s">
+                    <div class="route-header">
+                        <span class="route-name">${r.name}</span>
+                        <span class="route-type">${r.type}</span>
+                    </div>
+                    <div class="route-company">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                        ${r.company}
+                    </div>
+                    <div class="route-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Horario</span>
+                            <span class="detail-value">${r.schedule}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Costo</span>
+                            <span class="detail-value price-tag">${r.cost}</span>
+                        </div>
+                    </div>
+                    ${r.reqs !== 'Ninguno' ? `
+                        <div style="margin-top: 10px; font-size: 11px; color: var(--text-dim); border-top: 1px dotted var(--border); padding-top: 8px;">
+                            <strong>Aviso:</strong> ${r.reqs}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // --- Interaction ---
+        document.getElementById('admin-toggle').addEventListener('click', () => {
+            userView.style.display = 'none';
+            adminView.style.display = 'block';
+            window.scrollTo(0, 0);
+        });
+
+        document.getElementById('cancel-admin').addEventListener('click', () => {
+            adminView.style.display = 'none';
+            userView.style.display = 'block';
+        });
+
+        document.getElementById('route-search').addEventListener('input', (e) => {
+            renderRoutes(e.target.value);
+        });
+
+        routeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newRoute = {
+                id: Date.now(),
+                name: document.getElementById('form-name').value,
+                company: document.getElementById('form-company').value,
+                type: document.getElementById('form-type').value,
+                schedule: document.getElementById('form-schedule').value || 'Sin definir',
+                cost: document.getElementById('form-cost').value || 'Por confirmar',
+                reqs: document.getElementById('form-reqs').value || 'Ninguno'
+            };
+
+            routes.unshift(newRoute);
+            localStorage.setItem('m_routes', JSON.stringify(routes));
+
+            routeForm.reset();
+            adminView.style.display = 'none';
+            userView.style.display = 'block';
+            renderRoutes();
+        });
+
+        // Chips interaction
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+
+                const category = chip.innerText;
+                const searchQuery = document.getElementById('route-search').value.toLowerCase();
+
+                const filtered = routes.filter(r => {
+                    const matchesCategory = category === 'Todas' || r.type === category;
+                    const matchesSearch = r.name.toLowerCase().includes(searchQuery) ||
+                        r.company.toLowerCase().includes(searchQuery);
+                    return matchesCategory && matchesSearch;
+                });
+
+                renderFilteredRoutes(filtered);
+            });
+        });
+
+        function renderFilteredRoutes(filtered) {
+            routeContainer.innerHTML = filtered.map((r, index) => `
+                <div class="route-card animate-fade" style="animation-delay: ${index * 0.05}s">
+                    <div class="route-header">
+                        <span class="route-name">${r.name}</span>
+                        <span class="route-type">${r.type}</span>
+                    </div>
+                    <div class="route-company">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                        ${r.company}
+                    </div>
+                    <div class="route-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Horario</span>
+                            <span class="detail-value">${r.schedule}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Costo</span>
+                            <span class="detail-value price-tag">${r.cost}</span>
+                        </div>
+                    </div>
+                    ${r.reqs !== 'Ninguno' ? `
+                        <div style="margin-top: 10px; font-size: 11px; color: var(--text-dim); border-top: 1px dotted var(--border); padding-top: 8px;">
+                            <strong>Aviso:</strong> ${r.reqs}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Update search listener to respect category
+        document.getElementById('route-search').addEventListener('input', (e) => {
+            const activeChip = document.querySelector('.chip.active').innerText;
+            const searchQuery = e.target.value.toLowerCase();
+
+            const filtered = routes.filter(r => {
+                const matchesCategory = activeChip === 'Todas' || r.type === activeChip;
+                const matchesSearch = r.name.toLowerCase().includes(searchQuery) ||
+                    r.company.toLowerCase().includes(searchQuery);
+                return matchesCategory && matchesSearch;
+            });
+
+            renderFilteredRoutes(filtered);
+        });
+
+        // Initialize
+        renderRoutes();
+    </script>
+</body>
+
+</html>
