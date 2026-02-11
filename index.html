@@ -800,6 +800,99 @@
                 transform: scale(1);
             }
         }
+
+        /* MAP BANNER */
+        .map-banner {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            background: rgba(16, 20, 29, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            animation: slideUpBanner 0.5s ease-out;
+        }
+
+        @keyframes slideUpBanner {
+            from {
+                transform: translate(-50%, 50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        .map-banner-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-banner-label {
+            font-size: 10px;
+            color: var(--primary-light);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .map-banner-text {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .btn-logout {
+            background: none;
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 8px;
+            color: var(--text-dim);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* ADMIN TABS */
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: var(--bg-accent);
+            padding: 5px;
+            border-radius: 12px;
+        }
+
+        .admin-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dim);
+            transition: all 0.3s;
+        }
+
+        .admin-tab.active {
+            background: var(--primary);
+            color: white;
+        }
     </style>
 </head>
 
@@ -842,19 +935,27 @@
     <div class="container">
         <header>
             <div class="logo">🚌 Ruta Municipal Monclova</div>
-            <button class="btn-header" id="admin-btn-header" title="Panel Admin" style="display: none;">⚙️</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-logout" id="logout-btn" onclick="logout()" style="display: none;">🚪 Salir</button>
+                <button class="btn-header" id="admin-btn-header" title="Panel Admin" style="display: none;">⚙️</button>
+            </div>
         </header>
 
         <main class="scrollable">
-            <!-- VISTA 1: INICIO - DIRECTORIO DE RUTAS -->
+            <!-- VISTA 1: LISTADO DE RUTAS -->
             <div id="view-home" class="view active">
-                <div class="search-box">
-                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <input type="text" id="search-input" placeholder="Busca una ruta...">
+                <div class="search-bar">
+                    <input type="text" id="route-search" placeholder="Busca tu ruta o destino..."
+                        oninput="renderRoutes(this.value)">
+                </div>
+
+                <div class="ad-card"
+                    style="margin-bottom: 25px; border: 2px dashed var(--primary); background: rgba(139, 92, 246, 0.1);">
+                    <div style="font-size: 24px; margin-bottom: 5px;">🚀 ✨</div>
+                    <div class="ad-name">¿Tu negocio podría estar aquí?</div>
+                    <div class="ad-desc">Llega a miles de usuarios en Monclova. ¡Patrocina esta ruta!</div>
+                    <button class="btn-contact" onclick="window.location.href='https://wa.me/528664795328'"
+                        style="background: var(--primary);">📲 Contactar para Publicidad</button>
                 </div>
 
                 <div class="filters scrollable" style="margin-bottom: 20px;">
@@ -872,7 +973,17 @@
             <!-- VISTA 2: MAPA INDIVIDUAL DE RUTA -->
             <div id="view-route-map" class="view">
                 <button class="back-btn" onclick="backToHome()">← Volver</button>
-                <div id="map-individual"></div>
+                <div style="position: relative;">
+                    <div id="map-individual"></div>
+                    <div class="map-banner" id="map-ad-banner">
+                        <div class="map-banner-info">
+                            <div class="map-banner-label">🚀 Publicidad</div>
+                            <div class="map-banner-text">Tu negocio aquí ✨</div>
+                        </div>
+                        <button class="btn-contact" onclick="window.location.href='https://wa.me/528664795328'"
+                            style="margin-top: 0; padding: 6px 12px; background: var(--primary);">📲 Info</button>
+                    </div>
+                </div>
 
                 <div class="map-info">
                     <h2 id="map-route-name"></h2>
@@ -896,10 +1007,7 @@
                     </div>
                 </div>
 
-                <div class="waypoints">
-                    <div class="section-title">📍 Paradas de la Ruta</div>
-                    <div id="waypoints-list"></div>
-                </div>
+                <!-- Sección de paradas eliminada por solicitud para limpieza visual -->
 
                 <div style="margin-bottom: 20px;">
                     <button class="btn-edit" onclick="editCurrentRoute()" style="width: 100%; padding: 12px;">✏️ Editar
@@ -907,102 +1015,89 @@
                 </div>
             </div>
 
-            <!-- VISTA 3: PANEL ADMIN -->
+            <!-- VISTA 5: ADMIN -->
             <div id="view-admin" class="view">
                 <button class="back-btn" onclick="backToHome()">← Volver</button>
-                <h2 style="margin-bottom: 20px;">Panel de Administración</h2>
+                <h2 style="margin-bottom: 20px;">Panel de Control ✨</h2>
 
                 <div id="success-msg"></div>
 
-                <form id="route-form" class="admin-form">
-                    <div class="form-group">
-                        <label>Nombre de la Ruta</label>
-                        <input type="text" id="form-name" placeholder="Ej: Directo Centro" required>
-                    </div>
+                <div class="admin-tabs">
+                    <div id="tab-routes" class="admin-tab active" onclick="switchAdminTab('routes')">🚌 Rutas</div>
+                    <div id="tab-ads" class="admin-tab" onclick="switchAdminTab('ads')">📢 Anuncios</div>
+                </div>
 
-                    <div class="form-group">
-                        <label>Empresa</label>
-                        <input type="text" id="form-company" placeholder="Ej: Transportes Urbanos" required>
-                    </div>
+                <!-- GESTIÓN DE RUTAS -->
+                <div id="admin-routes-section">
+                    <form id="route-form" class="admin-form" onsubmit="event.preventDefault(); saveRoute();">
+                        <div class="admin-card">
+                            <h3 id="admin-form-title">Nueva Ruta</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Nombre</label>
+                                    <input type="text" id="form-name" placeholder="Ej: Ruta 5" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Empresa</label>
+                                    <input type="text" id="form-company" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Horario</label>
+                                    <input type="text" id="form-schedule" placeholder="06:00 - 21:00">
+                                </div>
+                                <div class="form-group">
+                                    <label>Costo</label>
+                                    <input type="text" id="form-cost" placeholder="$13.00 MXN">
+                                </div>
+                                <div class="form-group">
+                                    <label>Color</label>
+                                    <input type="color" id="form-color" value="#8b5cf6">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label>Coordenadas (Lat,Lng;Lat,Lng...)</label>
+                                <textarea id="form-coords" placeholder="26.91,-101.42;26.92,-101.43"></textarea>
+                            </div>
+                            <div class="form-actions" style="margin-top: 20px;">
+                                <button type="submit" class="btn-primary" style="width: 100%;">💾 Guardar Ruta</button>
+                            </div>
+                        </div>
+                    </form>
 
-                    <div class="form-group">
-                        <label>Tipo</label>
-                        <select id="form-type" required>
-                            <option value="">Selecciona un tipo</option>
-                            <option value="Urbana">Urbana</option>
-                            <option value="Empresarial">Empresarial</option>
-                            <option value="Escolar">Escolar</option>
-                            <option value="Expres">Expres</option>
-                        </select>
-                    </div>
+                    <div class="section-title">Rutas Existentes</div>
+                    <div id="admin-routes-list"></div>
+                </div>
 
-                    <div class="form-group">
-                        <label>Horario (Ej: 06:00 - 21:30)</label>
-                        <input type="text" id="form-schedule" placeholder="06:00 - 21:30">
-                    </div>
+                <!-- GESTIÓN DE ANUNCIOS -->
+                <div id="admin-ads-section" style="display: none;">
+                    <form id="ad-form" class="admin-form" onsubmit="event.preventDefault(); saveAd();">
+                        <div class="admin-card">
+                            <h3 id="ad-form-title">Nuevo Anuncio</h3>
+                            <div class="form-group">
+                                <label>Nombre del Negocio</label>
+                                <input type="text" id="form-ad-name" placeholder="Ej: Tacos El Güero" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Descripción / Oferta</label>
+                                <input type="text" id="form-ad-desc" placeholder="Ej: 2x1 los Martes" required>
+                            </div>
+                            <div class="form-actions" style="margin-top: 20px;">
+                                <button type="submit" class="btn-primary" style="width: 100%;">💾 Guardar
+                                    Anuncio</button>
+                            </div>
+                        </div>
+                    </form>
 
-                    <div class="form-group">
-                        <label>Costo (Ej: $15.00 MXN)</label>
-                        <input type="text" id="form-cost" placeholder="$15.00 MXN">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Frecuencia (minutos)</label>
-                        <input type="number" id="form-frequency" placeholder="15">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Teléfono</label>
-                        <input type="tel" id="form-phone" placeholder="+52 867 123 4567">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Descripción</label>
-                        <textarea id="form-description" placeholder="¿Por dónde pasa esta ruta?"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Parada Inicial</label>
-                        <input type="text" id="form-start" placeholder="Parada de inicio">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Parada Final</label>
-                        <input type="text" id="form-end" placeholder="Parada final">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Coordenadas GPS (separadas por ;)</label>
-                        <textarea id="form-coords" placeholder="26.9124,-101.4244;26.9150,-101.4260"></textarea>
-                        <p style="font-size: 11px; color: var(--text-dim); margin-top: 8px;">
-                            Usa el trazador de rutas: <strong>trazador-rutas-interactivo.html</strong>
-                        </p>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Color de Ruta</label>
-                        <input type="color" id="form-color" value="#4f46e5">
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary">💾 Guardar</button>
-                        <button type="button" class="btn-secondary" onclick="resetForm()">Limpiar</button>
-                    </div>
-                </form>
+                    <div class="section-title">Anuncios Activos</div>
+                    <div id="admin-ads-list"></div>
+                </div>
 
                 <hr style="border: none; border-top: 1px solid var(--border); margin: 30px 0;">
 
-                <h3 style="margin-bottom: 16px; color: var(--text-muted);">Rutas Registradas</h3>
-                <div id="admin-routes-list"></div>
-
-                <hr style="border: none; border-top: 1px solid var(--border); margin: 30px 0;">
-
-                <div style="text-align: center;">
-                    <button class="btn-secondary" onclick="backupData()" style="width: 100%; margin-bottom: 10px;">📥
-                        Descargar Backup</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-secondary" onclick="backupData()" style="flex: 1;">📥 Backup</button>
                     <button class="btn-secondary btn-danger" onclick="resetAllData()"
-                        style="width: 100%; background: #ef4444; color: white; margin-top: 10px;">🗑️ Reiniciar
-                        Datos</button>
+                        style="flex: 1; background: #ef4444; color: white;">🗑️ Reiniciar</button>
                 </div>
             </div>
 
@@ -1012,7 +1107,7 @@
                 <h2 style="margin-bottom: 20px;">Anuncios y Promociones</h2>
 
                 <div class="ads-section">
-                    <div class="ads-title">� Impulsa tu Negocio con Nosotros</div>
+                    <div class="ads-title"> Impulsa tu Negocio con Nosotros</div>
                     <div class="ads-subtitle">Aparece frente a miles de usuarios que utilizan nuestro transporte
                         diariamente.</div>
                     <button class="btn-primary" style="width: 100%; font-size: 15px; padding: 15px;">💎 Convertirse en
@@ -1089,11 +1184,13 @@
             { id: 2, name: "Farmacia del Centro", description: "Medicamentos y atención 24/7" }
         ];
 
+        let ads = JSON.parse(localStorage.getItem('ms_ads')) || initialAds;
         let routes = JSON.parse(localStorage.getItem('ms_routes')) || initialRoutes;
         let currentRouteMap = null;
         let currentRoute = null;
         let editing = false;
         let editingId = null;
+        let editingAdId = null;
 
         let userLocationMarker = null;
         let isDeveloper = JSON.parse(localStorage.getItem('ms_is_dev')) || false;
@@ -1107,7 +1204,13 @@
             if (view === 'home') {
                 document.getElementById('view-home').classList.add('active');
             } else if (view === 'map') {
-                document.getElementById('view-route-map').classList.add('active');
+                if (currentRoute) {
+                    viewRouteMap(currentRoute.id);
+                } else if (routes.length > 0) {
+                    viewRouteMap(routes[0].id);
+                } else {
+                    document.getElementById('view-route-map').classList.add('active');
+                }
             } else if (view === 'ads') {
                 document.getElementById('view-ads').classList.add('active');
                 loadAds();
@@ -1118,8 +1221,43 @@
                 loadAdminRoutes();
             }
 
-            event.target.closest('.nav-btn').classList.add('active');
+            // Find the correct nav button to activate based on the view
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                const divText = btn.querySelector('div:last-child').textContent.toLowerCase();
+                if (view === 'home' && divText === 'inicio') {
+                    btn.classList.add('active');
+                } else if (view === 'map' && divText === 'mapa') {
+                    btn.classList.add('active');
+                } else if (view === 'ads' && divText === 'anuncios') {
+                    btn.classList.add('active');
+                } else if (view === 'nearby' && divText === 'cercano') {
+                    btn.classList.add('active');
+                } else if (view === 'admin' && divText === 'admin') {
+                    btn.classList.add('active');
+                }
+            });
             window.scrollTo(0, 0);
+        }
+
+        function switchAdminTab(tab) {
+            const routesBtn = document.getElementById('tab-routes');
+            const adsBtn = document.getElementById('tab-ads');
+            const routesSec = document.getElementById('admin-routes-section');
+            const adsSec = document.getElementById('admin-ads-section');
+
+            if (tab === 'routes') {
+                routesBtn.classList.add('active');
+                adsBtn.classList.remove('active');
+                routesSec.style.display = 'block';
+                adsSec.style.display = 'none';
+            } else {
+                routesBtn.classList.remove('active');
+                adsBtn.classList.add('active');
+                routesSec.style.display = 'none';
+                adsSec.style.display = 'block';
+                loadAdminAds();
+            }
         }
 
         function backToHome() {
@@ -1143,7 +1281,7 @@
             }
 
             container.innerHTML = filtered.map(r => `
-                <div class="route-card">
+                <div class="route-card" onclick="viewRouteMap(${r.id})">
                     <div class="route-header">
                         <div class="route-name">✨ ${r.name}</div>
                         <div class="route-badge">${r.type}</div>
@@ -1153,8 +1291,8 @@
                         <div class="info-item">⏰ <span class="info-value">${r.schedule}</span></div>
                         <div class="info-item">💎 <span class="price">${r.cost}</span></div>
                     </div>
-                    <div class="route-actions">
-                        <button class="btn-map" onclick="viewRouteMap(${r.id})">🗺️ Ver Mapa</button>
+                    <div class="route-actions" onclick="event.stopPropagation()">
+                        <button class="btn-map">🗺️ Ver Mapa</button>
                         ${isDeveloper ? `
                             <button class="btn-edit" onclick="editRoute(${r.id})">✏️ Editar</button>
                             <button class="btn-delete" onclick="deleteRoute(${r.id})">🗑️ Borrar</button>
@@ -1165,7 +1303,7 @@
         }
 
         // ==================== BÚSQUEDA Y FILTROS ====================
-        document.getElementById('search-input').addEventListener('input', (e) => {
+        document.getElementById('route-search').addEventListener('input', (e) => {
             const filter = document.querySelector('.filter-chip.active').dataset.filter;
             renderRoutes(e.target.value, filter);
         });
@@ -1174,7 +1312,7 @@
             chip.addEventListener('click', () => {
                 document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
-                const search = document.getElementById('search-input').value;
+                const search = document.getElementById('route-search').value;
                 renderRoutes(search, chip.dataset.filter);
             });
         });
@@ -1205,34 +1343,29 @@
             // Mapa
             setTimeout(() => {
                 if (currentRouteMap) currentRouteMap.remove();
-                currentRouteMap = L.map('map-individual').setView([26.9124, -101.4244], 13);
+                currentRouteMap = L.map('map-individual', {
+                    zoomControl: false
+                }).setView([26.9124, -101.4244], 13);
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap',
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    attribution: '© OpenStreetMap, © CartoDB',
                     maxZoom: 19
                 }).addTo(currentRouteMap);
 
-                // Línea de ruta
+                L.control.zoom({ position: 'topright' }).addTo(currentRouteMap);
+
+                // Línea de ruta (Solo línea, sin puntos individuales como se solicitó)
                 L.polyline(currentRoute.coordinates, {
-                    color: currentRoute.color,
-                    weight: 4,
-                    opacity: 0.8
+                    color: currentRoute.color || 'var(--primary)',
+                    weight: 6,
+                    opacity: 0.8,
+                    lineJoin: 'round'
                 }).addTo(currentRouteMap);
 
-                // Marcadores
-                currentRoute.coordinates.forEach((coord, i) => {
-                    L.circleMarker(coord, {
-                        radius: 8,
-                        fillColor: currentRoute.color,
-                        color: '#fff',
-                        weight: 2,
-                        opacity: 1,
-                        fillOpacity: 0.8
-                    }).addTo(currentRouteMap).bindPopup(`<strong>Parada ${i + 1}</strong><br>${coord[0].toFixed(4)}, ${coord[1].toFixed(4)}`);
-                });
+                currentRouteMap.fitBounds(L.polyline(currentRoute.coordinates).getBounds(), { padding: [30, 30] });
 
                 currentRouteMap.invalidateSize();
-            }, 100);
+            }, 200);
 
             // Cambiar vista
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -1247,47 +1380,49 @@
         }
 
         // ==================== VISTA: ADMIN ====================
-        document.getElementById('route-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-
+        function saveRoute() {
             const coordString = document.getElementById('form-coords').value;
-            const coordinates = coordString.split(';').map(coord => {
-                const [lat, lng] = coord.trim().split(',');
-                return [parseFloat(lat), parseFloat(lng)];
-            });
+            let coordinates = [];
+            if (coordString) {
+                coordinates = coordString.split(';').map(coord => {
+                    const [lat, lng] = coord.trim().split(',');
+                    return [parseFloat(lat), parseFloat(lng)];
+                }).filter(c => !isNaN(c[0]) && !isNaN(c[1]));
+            }
 
             const newRoute = {
                 id: editing ? editingId : Date.now(),
                 name: document.getElementById('form-name').value,
                 company: document.getElementById('form-company').value,
-                type: document.getElementById('form-type').value,
-                schedule: document.getElementById('form-schedule').value || 'Sin definir',
-                cost: document.getElementById('form-cost').value || 'Por confirmar',
-                frequency: parseInt(document.getElementById('form-frequency').value) || 0,
-                phone: document.getElementById('form-phone').value,
-                description: document.getElementById('form-description').value,
-                startStation: document.getElementById('form-start').value,
-                endStation: document.getElementById('form-end').value,
+                type: "Urbana", // Simplificado
+                schedule: document.getElementById('form-schedule').value || '06:00 - 21:00',
+                cost: document.getElementById('form-cost').value || '$13.00 MXN',
+                frequency: 15,
+                phone: "+52 866 479 53 28",
+                description: "",
+                startStation: "Inicio",
+                endStation: "Fin",
                 coordinates: coordinates,
                 color: document.getElementById('form-color').value
             };
 
             if (editing) {
                 const idx = routes.findIndex(r => r.id === editingId);
-                routes[idx] = newRoute;
-                showSuccess('✓ Ruta actualizada exitosamente');
+                if (idx !== -1) routes[idx] = newRoute;
+                showSuccess('✓ Ruta actualizada');
                 editing = false;
                 editingId = null;
+                document.getElementById('admin-form-title').innerText = "Nueva Ruta";
             } else {
                 routes.unshift(newRoute);
-                showSuccess('✓ Ruta registrada exitosamente');
+                showSuccess('✓ Ruta registrada');
             }
 
             localStorage.setItem('ms_routes', JSON.stringify(routes));
-            resetForm();
+            document.getElementById('route-form').reset();
             renderRoutes();
             loadAdminRoutes();
-        });
+        }
 
         function editRoute(id) {
             const route = routes.find(r => r.id === id);
@@ -1389,13 +1524,85 @@
                 </div>
             `;
 
-            container.innerHTML = placeholderAd + initialAds.map(ad => `
+            container.innerHTML = placeholderAd + ads.map(ad => `
                 <div class="ad-card">
                     <div class="ad-name">${ad.name}</div>
                     <div class="ad-desc">${ad.description}</div>
                     <button class="btn-contact" onclick="window.location.href='https://wa.me/528664795328'">📞 Contactar</button>
+                    ${isDeveloper ? `
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button class="btn-edit" onclick="switchView('admin'); switchAdminTab('ads'); editAd(${ad.id})" style="flex:1">✏️</button>
+                            <button class="btn-edit" onclick="deleteAd(${ad.id})" style="flex:1; background: #ef4444">🗑️</button>
+                        </div>
+                    ` : ''}
                 </div>
             `).join('');
+        }
+
+        // ==================== ADMIN: ANUNCIOS ====================
+        function loadAdminAds() {
+            const list = document.getElementById('admin-ads-list');
+            list.innerHTML = ads.map(ad => `
+                <div class="admin-route-item" style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-accent); padding: 12px; border-radius: 10px; margin-bottom: 8px;">
+                    <div>
+                        <div style="font-weight: bold;">${ad.name}</div>
+                        <div style="font-size: 11px; color: var(--text-dim);">${ad.description}</div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="editAd(${ad.id})" style="background: none; border: none; cursor: pointer;">✏️</button>
+                        <button onclick="deleteAd(${ad.id})" style="background: none; border: none; cursor: pointer;">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveAd() {
+            const name = document.getElementById('form-ad-name').value;
+            const desc = document.getElementById('form-ad-desc').value;
+
+            if (!name || !desc) return;
+
+            if (editingAdId) {
+                const index = ads.findIndex(a => a.id === editingAdId);
+                ads[index] = { ...ads[index], name, description: desc };
+                editingAdId = null;
+                document.getElementById('ad-form-title').innerText = "Nuevo Anuncio";
+                showSuccess("✓ Anuncio actualizado");
+            } else {
+                const newAd = {
+                    id: Date.now(),
+                    name,
+                    description: desc
+                };
+                ads.push(newAd);
+                showSuccess("✓ Anuncio creado");
+            }
+
+            localStorage.setItem('ms_ads', JSON.stringify(ads));
+            document.getElementById('ad-form').reset();
+            loadAdminAds();
+            loadAds();
+        }
+
+        function editAd(id) {
+            const ad = ads.find(a => a.id === id);
+            if (!ad) return;
+
+            editingAdId = id;
+            document.getElementById('form-ad-name').value = ad.name;
+            document.getElementById('form-ad-desc').value = ad.description;
+            document.getElementById('ad-form-title').innerText = "Editando Anuncio";
+            window.scrollTo(0, 0);
+        }
+
+        function deleteAd(id) {
+            if (confirm("¿Estás seguro de eliminar este anuncio?")) {
+                ads = ads.filter(a => a.id !== id);
+                localStorage.setItem('ms_ads', JSON.stringify(ads));
+                loadAdminAds();
+                loadAds();
+                showSuccess("🗑️ Anuncio eliminado");
+            }
         }
 
         // ==================== VISTA: CERCANO / UBICACIÓN ====================
@@ -1471,6 +1678,9 @@
         function checkAuth() {
             if (!currentUser && !isDeveloper) {
                 document.getElementById('login-overlay').style.display = 'flex';
+                document.getElementById('logout-btn').style.display = 'none';
+            } else {
+                document.getElementById('logout-btn').style.display = 'block';
             }
         }
 
