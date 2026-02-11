@@ -738,10 +738,107 @@
         .scrollable::-webkit-scrollbar {
             display: none;
         }
+
+        /* LOGIN OVERLAY */
+        #login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 6, 10, 0.95);
+            backdrop-filter: blur(15px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .login-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .dev-login-toggle {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-decoration: underline;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        /* USER MARKER */
+        .user-marker-icon {
+            font-size: 32px;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 
 <body>
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay">
+        <div class="login-card">
+            <div class="logo" style="font-size: 28px; margin-bottom: 10px;">🚌 Ruta Municipal Monclova</div>
+            <p id="login-description" style="margin-bottom: 25px; color: var(--text-muted);">¡Bienvenido! Regístrate
+                para ver todas las rutas y ofertas especiales.</p>
+
+            <div id="user-login-step" class="login-steps">
+                <div class="form-group" style="text-align: left;">
+                    <label>Tu Nombre</label>
+                    <input type="text" id="user-name" placeholder="Ej: Juan Pérez">
+                </div>
+                <div class="form-group" style="text-align: left;">
+                    <label>Tu WhatsApp / Teléfono</label>
+                    <input type="tel" id="user-phone" placeholder="+52 866 479 53 28">
+                </div>
+                <button class="btn-primary" onclick="registerUser()" style="padding: 15px;">🚀 Empezar a
+                    Navegar</button>
+            </div>
+
+            <div id="dev-login-step" class="login-steps" style="display: none;">
+                <div class="form-group" style="text-align: left;">
+                    <label>Código de Dueño</label>
+                    <input type="password" id="dev-code" placeholder="••••">
+                </div>
+                <button class="btn-primary" onclick="loginDev()" style="padding: 15px; background: var(--secondary);">✨
+                    Entrar como Dueño</button>
+            </div>
+
+            <div class="dev-login-toggle" id="toggle-dev" onclick="toggleDevLogin()">¿Eres el dueño de la app?</div>
+            <div class="dev-login-toggle" id="toggle-user" onclick="toggleDevLogin()" style="display: none;">Volver al
+                registro de usuario</div>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <div class="logo">🚌 Ruta Municipal Monclova</div>
@@ -965,8 +1062,6 @@
     </div>
 
     <script>
-        // ==================== CONFIGURACIÓN ====================
-        const isDeveloper = false; // Cambiar a true para ver herramientas de edición
 
         // ==================== DATOS ====================
         const initialRoutes = [
@@ -976,9 +1071,9 @@
                 company: "Municipal",
                 type: "Urbana",
                 schedule: "06:00 - 21:00",
-                cost: "$15.00 MXN",
+                cost: "$13.00 MXN",
                 frequency: 15,
-                phone: "+52 866 000 0000",
+                phone: "+52 866 479 53 28",
                 description: "Ruta principal Monclova - 15 de Mayo",
                 startStation: "Punto de Inicio",
                 endStation: "Punto Final",
@@ -999,6 +1094,10 @@
         let currentRoute = null;
         let editing = false;
         let editingId = null;
+
+        let userLocationMarker = null;
+        let isDeveloper = JSON.parse(localStorage.getItem('ms_is_dev')) || false;
+        let currentUser = JSON.parse(localStorage.getItem('ms_user_data')) || null;
 
         // ==================== NAVEGACIÓN ====================
         function switchView(view) {
@@ -1272,26 +1371,59 @@
             a.download = `midnight-shuttle-backup-${Date.now()}.json`;
             a.click();
             showSuccess('✓ Backup descargado');
+
+            // Log de usuarios (Demo)
+            const users = JSON.parse(localStorage.getItem('ms_registered_users')) || [];
+            console.log("Usuarios registrados:", users);
         }
 
         // ==================== VISTA: ANUNCIOS ====================
         function loadAds() {
             const container = document.getElementById('ads-container');
-            container.innerHTML = initialAds.map(ad => `
+            const placeholderAd = `
+                <div class="ad-card" style="border-style: dashed; border-color: var(--primary); background: rgba(139, 92, 246, 0.05); text-align: center;">
+                    <div style="font-size: 32px; margin-bottom: 10px;">✨</div>
+                    <div class="ad-name" style="font-size: 16px;">¿Tu negocio aquí?</div>
+                    <div class="ad-desc">Aprovecha este espacio y llega a toda Monclova.</div>
+                    <button class="btn-contact" onclick="window.location.href='https://wa.me/528664795328'">📲 Más Información</button>
+                </div>
+            `;
+
+            container.innerHTML = placeholderAd + initialAds.map(ad => `
                 <div class="ad-card">
                     <div class="ad-name">${ad.name}</div>
                     <div class="ad-desc">${ad.description}</div>
-                    <button class="btn-contact">📞 Contactar</button>
+                    <button class="btn-contact" onclick="window.location.href='https://wa.me/528664795328'">📞 Contactar</button>
                 </div>
             `).join('');
         }
 
-        // ==================== VISTA: CERCANO ====================
+        // ==================== VISTA: CERCANO / UBICACIÓN ====================
         function findNearby() {
             if (navigator.geolocation) {
+                showSuccess("🛰️ Buscando satélites...");
                 navigator.geolocation.getCurrentPosition((pos) => {
                     const userLat = pos.coords.latitude;
                     const userLng = pos.coords.longitude;
+
+                    // Mostrar en el mapa si estamos en la vista de mapa
+                    if (currentRouteMap) {
+                        if (userLocationMarker) currentRouteMap.removeLayer(userLocationMarker);
+
+                        const userIcon = L.divIcon({
+                            html: '<div class="user-marker-icon">🚶</div>',
+                            className: 'custom-div-icon',
+                            iconSize: [40, 40],
+                            iconAnchor: [20, 20]
+                        });
+
+                        userLocationMarker = L.marker([userLat, userLng], { icon: userIcon })
+                            .addTo(currentRouteMap)
+                            .bindPopup("<b>¡Aquí estás tú!</b>")
+                            .openPopup();
+
+                        currentRouteMap.setView([userLat, userLng], 15);
+                    }
 
                     const nearby = routes.map(route => {
                         if (!route.coordinates || route.coordinates.length === 0) return null;
@@ -1317,6 +1449,9 @@
                             </div>
                         `).join('');
                     }
+                    showSuccess("✅ Ubicación detectada");
+                }, (err) => {
+                    showSuccess("❌ Error al obtener ubicación");
                 });
             }
         }
@@ -1330,6 +1465,74 @@
                 Math.sin(dLon / 2) * Math.sin(dLon / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             return R * c;
+        }
+
+        // ==================== AUTH / REGISTRO ====================
+        function checkAuth() {
+            if (!currentUser && !isDeveloper) {
+                document.getElementById('login-overlay').style.display = 'flex';
+            }
+        }
+
+        function toggleDevLogin() {
+            const userStep = document.getElementById('user-login-step');
+            const devStep = document.getElementById('dev-login-step');
+            const toggleDev = document.getElementById('toggle-dev');
+            const toggleUser = document.getElementById('toggle-user');
+            const desc = document.getElementById('login-description');
+
+            if (userStep.style.display !== 'none') {
+                userStep.style.display = 'none';
+                devStep.style.display = 'flex';
+                toggleDev.style.display = 'none';
+                toggleUser.style.display = 'block';
+                desc.innerText = "Acceso restringido para administradores de la app.";
+            } else {
+                userStep.style.display = 'flex';
+                devStep.style.display = 'none';
+                toggleDev.style.display = 'block';
+                toggleUser.style.display = 'none';
+                desc.innerText = "¡Bienvenido! Regístrate para ver todas las rutas y ofertas especiales.";
+            }
+        }
+
+        function registerUser() {
+            const name = document.getElementById('user-name').value;
+            const phone = document.getElementById('user-phone').value;
+
+            if (!name || !phone) {
+                alert("Por favor completa tus datos");
+                return;
+            }
+
+            const userData = { name, phone, date: new Date().toISOString() };
+            localStorage.setItem('ms_user_data', JSON.stringify(userData));
+
+            // Guardar en lista de "leads" locales
+            const allUsers = JSON.parse(localStorage.getItem('ms_registered_users')) || [];
+            allUsers.push(userData);
+            localStorage.setItem('ms_registered_users', JSON.stringify(allUsers));
+
+            currentUser = userData;
+            document.getElementById('login-overlay').style.display = 'none';
+            showSuccess(`¡Hola ${name}! Bienvenido.`);
+        }
+
+        function loginDev() {
+            const code = document.getElementById('dev-code').value;
+            if (code === "2026") { // Código de acceso demo
+                localStorage.setItem('ms_is_dev', 'true');
+                isDeveloper = true;
+                location.reload(); // Recargar para activar UI
+            } else {
+                alert("Código incorrecto");
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('ms_user_data');
+            localStorage.removeItem('ms_is_dev');
+            location.reload();
         }
 
         // ==================== UTILIDADES ====================
@@ -1350,6 +1553,7 @@
 
         // Estilo extra: animar la entrada
         document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
             renderRoutes();
             loadAdminRoutes();
         });
